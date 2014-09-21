@@ -84,24 +84,27 @@ class Genome(object):
     return True
 
 class Gui(object):
-  def __init__(self, root, filename, length):
+  def __init__(self, root, filename):
     self.filename = filename
-    self.length = length
-    self.frame = Tkinter.Frame(root)
-    self.frame.pack()
-    self.im_label = Tkinter.Label(self.frame)
+    # main frame
+    self.main_frame = Tkinter.Frame(root)
+    self.main_frame.pack()
+    self.im_label = Tkinter.Label(self.main_frame)
     self.im_label.pack(side=Tkinter.TOP)
     self.old_im_label = self.im_label
-    self.exit_button = Tkinter.Button(self.frame, text="Exit", command=self.frame.quit)
-    self.exit_button.pack(side=Tkinter.BOTTOM)
-    self.gen_button = Tkinter.Button(self.frame, text="gen", command=self.gen)
-    self.gen_button.pack(side=Tkinter.BOTTOM)
-    self.length_scale = Tkinter.Scale(self.frame, from_=0, to=10)
-    self.length_scale.pack(side=Tkinter.BOTTOM)
+    # buttons
+    self.button_frame = Tkinter.Frame(self.main_frame)
+    self.button_frame.pack(side=Tkinter.BOTTOM)
+    self.exit_button = Tkinter.Button(self.button_frame, text="Exit", command=self.main_frame.quit)
+    self.exit_button.pack(side=Tkinter.RIGHT)
+    self.gen_button = Tkinter.Button(self.button_frame, text="gen", command=self.gen)
+    self.gen_button.pack(side=Tkinter.RIGHT)
+    self.length_scale = Tkinter.Scale(self.button_frame, from_=0, to=10, label="number of actions", orient=Tkinter.HORIZONTAL, length=200)
+    self.length_scale.pack(side=Tkinter.LEFT)
   def gen(self):
-    g = Genome(self.filename, self.length)
+    g = Genome(self.filename, self.length_scale.get())
     tkim = g.get_mod()
-    self.im_label = Tkinter.Label(self.frame, image=tkim)
+    self.im_label = Tkinter.Label(self.main_frame, image=tkim)
     self.im_label.image = tkim
     self.im_label.pack(side=Tkinter.TOP)
     self.old_im_label.destroy()
@@ -112,6 +115,6 @@ if __name__ == "__main__":
     print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
   root = Tkinter.Tk()
-  gui = Gui(root, sys.argv[1], 5)
+  gui = Gui(root, sys.argv[1])
   root.mainloop()
   root.destroy()
