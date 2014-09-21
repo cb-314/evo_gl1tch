@@ -43,13 +43,28 @@ class ActionAdd(Action):
     self.begin = random.randint(0, size-1)
     self.chunk = [chr(random.randint(0, 255)) for i in range(random.randint(1, 10000))]
 
+class ActionMove(Action):
+  def __init__(self, size):
+    Action.__init__(self, size)
+    self.begin = random.randint(0, size-1)
+    self.end = random.randint(self.begin, size-1)
+    self.insert = random.randint(0, size-(self.end-self.begin)-1)
+  def mod(self, image):
+    newimage = list(image)
+    del newimage[self.begin:self.end]
+    return newimage[:self.insert] + image[self.begin:self.end] + newimage[self.insert:]
+  def mutate(self):
+    self.begin = random.randint(0, size-1)
+    self.end = random.randint(self.begin, size-1)
+    self.insert = random.randint(0, size-(self.end-self.begin)-1)
+
 class Genome(object):
   def __init__(self, filename, length):
     self.im_data = list(open(filename, "rb").read())
     size = len(self.im_data)
-    self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size)]) for i in range(length)]
+    self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size), ActionMove(size)]) for i in range(length)]
     while not self.test():
-      self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size)]) for i in range(length)]
+      self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size), ActionMove(size)]) for i in range(length)]
   def show_orig(self):
     Image.open(BytesIO("".join(self.im_data))).show()
   def show_mod(self):
