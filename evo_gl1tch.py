@@ -2,7 +2,7 @@ import sys
 import random
 from PIL import Image, ImageTk
 from io import BytesIO
-import Tkinter
+import Tkinter as tk
 
 class Action(object):
   def __init__(self, size):
@@ -86,27 +86,25 @@ class Genome(object):
 class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
-    # main frame
-    self.main_frame = Tkinter.Frame(root)
-    self.main_frame.pack()
-    self.im_label = Tkinter.Label(self.main_frame)
-    self.im_label.pack(side=Tkinter.TOP)
+    self.root = root
+    # image
+    self.im_label = tk.Label(self.root, text="foo")
+    self.im_label.grid(row=0, columnspan=3)
     self.old_im_label = self.im_label
     # buttons
-    self.button_frame = Tkinter.Frame(self.main_frame)
-    self.button_frame.pack(side=Tkinter.BOTTOM)
-    self.exit_button = Tkinter.Button(self.button_frame, text="Exit", command=self.main_frame.quit)
-    self.exit_button.pack(side=Tkinter.RIGHT)
-    self.gen_button = Tkinter.Button(self.button_frame, text="gen", command=self.gen)
-    self.gen_button.pack(side=Tkinter.RIGHT)
-    self.length_scale = Tkinter.Scale(self.button_frame, from_=0, to=10, label="number of actions", orient=Tkinter.HORIZONTAL, length=200)
-    self.length_scale.pack(side=Tkinter.LEFT)
+    self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
+    self.exit_button.grid(row=1, column=2)
+    self.gen_button = tk.Button(self.root, text="gen", command=self.gen)
+    self.gen_button.grid(row=1, column=1)
+    # slider
+    self.length_scale = tk.Scale(self.root, from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
+    self.length_scale.grid(row=1, column=0)
   def gen(self):
     g = Genome(self.filename, self.length_scale.get())
     tkim = g.get_mod()
-    self.im_label = Tkinter.Label(self.main_frame, image=tkim)
+    self.im_label = tk.Label(self.root, image=tkim)
+    self.im_label.grid(row=0, columnspan=3)
     self.im_label.image = tkim
-    self.im_label.pack(side=Tkinter.TOP)
     self.old_im_label.destroy()
     self.old_im_label = self.im_label
 
@@ -114,7 +112,7 @@ if __name__ == "__main__":
   if len(sys.argv) != 2:
     print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
-  root = Tkinter.Tk()
+  root = tk.Tk()
   gui = Gui(root, sys.argv[1])
   root.mainloop()
   root.destroy()
