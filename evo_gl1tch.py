@@ -88,7 +88,8 @@ class Gui(object):
     self.filename = filename
     self.root = root
     # image
-    self.im_label = tk.Label(self.root, text="foo")
+    self.im_var = tk.IntVar()
+    self.im_label = tk.Checkbutton(self.root, text="foo", variable=self.im_var, indicatoron=False)
     self.im_label.grid(row=0, columnspan=3)
     self.old_im_label = self.im_label
     # buttons
@@ -102,7 +103,7 @@ class Gui(object):
   def gen(self):
     g = Genome(self.filename, self.length_scale.get())
     tkim = g.get_mod()
-    self.im_label = tk.Label(self.root, image=tkim)
+    self.im_label = tk.Checkbutton(self.root, image=tkim, variable=self.im_var, indicatoron=False, bd=10) 
     self.im_label.grid(row=0, columnspan=3)
     self.im_label.image = tkim
     self.old_im_label.destroy()
