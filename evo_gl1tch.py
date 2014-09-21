@@ -1,7 +1,8 @@
 import sys
 import random
-from PIL import Image
+from PIL import Image, ImageTk
 from io import BytesIO
+import Tkinter
 
 class Action(object):
   def __init__(self, size):
@@ -65,13 +66,13 @@ class Genome(object):
     self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size), ActionMove(size)]) for i in range(length)]
     while not self.test():
       self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size), ActionMove(size)]) for i in range(length)]
-  def show_orig(self):
-    Image.open(BytesIO("".join(self.im_data))).show()
-  def show_mod(self):
+  def get_orig(self):
+    return ImageTk.PhotoImage(Image.open(BytesIO("".join(self.im_data))))
+  def get_mod(self):
     im = list(self.im_data)
     for action in self.genome:
       im = action.mod(im)
-    Image.open(BytesIO("".join(im))).show()
+    return ImageTk.PhotoImage(Image.open(BytesIO("".join(im))))
   def test(self):
     im = list(self.im_data)
     for action in self.genome:
@@ -82,9 +83,35 @@ class Genome(object):
       return False
     return True
 
+class Gui(object):
+  def __init__(self, root, filename, length):
+    self.filename = filename
+    self.length = length
+    self.frame = Tkinter.Frame(root)
+    self.frame.pack()
+    self.im_label = Tkinter.Label(self.frame)
+    self.im_label.pack(side=Tkinter.TOP)
+    self.old_im_label = self.im_label
+    self.exit_button = Tkinter.Button(self.frame, text="Exit", command=self.frame.quit)
+    self.exit_button.pack(side=Tkinter.BOTTOM)
+    self.gen_button = Tkinter.Button(self.frame, text="gen", command=self.gen)
+    self.gen_button.pack(side=Tkinter.BOTTOM)
+    self.length_scale = Tkinter.Scale(self.frame, from_=0, to=10)
+    self.length_scale.pack(side=Tkinter.BOTTOM)
+  def gen(self):
+    g = Genome(self.filename, self.length)
+    tkim = g.get_mod()
+    self.im_label = Tkinter.Label(self.frame, image=tkim)
+    self.im_label.image = tkim
+    self.im_label.pack(side=Tkinter.TOP)
+    self.old_im_label.destroy()
+    self.old_im_label = self.im_label
+
 if __name__ == "__main__":
   if len(sys.argv) != 2:
     print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
-  gen = Genome(sys.argv[1], 5)
-  gen.show_mod()
+  root = Tkinter.Tk()
+  gui = Gui(root, sys.argv[1], 5)
+  root.mainloop()
+  root.destroy()
