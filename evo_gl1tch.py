@@ -63,10 +63,10 @@ class ActionMove(Action):
 class Genome(object):
   def __init__(self, filename, length):
     self.im_data = list(open(filename, "rb").read())
-    size = len(self.im_data)
-    self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size), ActionMove(size)]) for i in range(length)]
+    self.size = len(self.im_data)
+    self.genome = [random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)]) for i in range(length)]
     while not self.test():
-      self.genome = [random.choice([ActionDoNothing(size), ActionDelete(size), ActionAdd(size), ActionMove(size)]) for i in range(length)]
+      self.genome = [random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)]) for i in range(length)]
   def test(self):
     im = list(self.im_data)
     for action in self.genome:
@@ -76,16 +76,35 @@ class Genome(object):
     except:
       return False
     return True
+  def resize(self, length):
+    if length < len(self.genome):
+      while length != len(self.genome):
+        pos = random.randint(0, len(self.genome)-1)
+        del self.genome[pos]
+    elif length > len(self.genome):
+      splice = random.randint(0, len(self.genome))
+      self.genome.insert(splice, random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)]))
+      while not self.test():
+        self.genome[splice] = random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)])
   def mutate(self):
     old_genome = copy.deepcopy(self.genome)
     for action in self.genome:
-      if random.random() < 0.2:
+      if random.random() < 0.1:
         action.mutate()
     while not self.test():
       self.genome = copy.deepcopy(old_genome)
       for action in self.genome:
-        if random.random() < 0.2:
+        if random.random() < 0.1:
           action.mutate()
+  def cross(self, other):
+    new_genome = copy.deepcopy(other)
+    splice = random.randint(0, len(self.genome))
+    for i in range(len(self.genome)):
+      if i <= splice:
+        new_genome.genome[i] = copy.deepcopy(self.genome[i])
+      else:
+        new_genome.genome[i] = copy.deepcopy(other.genome[i])
+    return new_genome
   def get_orig(self):
     return Image.open(BytesIO("".join(self.im_data)))
   def get_orig_tk(self):
@@ -135,9 +154,12 @@ class Gui(object):
         self.genomes[i] = Genome(self.filename, self.length_scale.get())
     else:
       for i in range(self.num_genomes):
-        self.genomes[i] = copy.deepcopy(random.choice(good_genomes))
+        self.genomes[i] = random.choice(good_genomes).cross(random.choice(good_genomes))
         self.genomes[i].mutate()
   def show_genomes(self):
+    if len(self.genomes[0].genome) != self.length_scale.get():
+      for genome in self.genomes:
+        genome.resize(self.length_scale.get())
     self.evolve()
     for var in self.im_vars:
       var.set(0)
