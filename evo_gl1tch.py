@@ -127,7 +127,7 @@ class Genome(object):
 class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
-    self.num_genomes = 9
+    self.num_genomes = 12
     # generate initial genomes
     self.genomes = [Genome(self.filename, 0) for i in range(self.num_genomes)]
     # GUI
@@ -136,8 +136,8 @@ class Gui(object):
     self.im_vars = [tk.IntVar() for i in range(self.num_genomes)]
     self.im_labels = [tk.Checkbutton(self.root, text="genome "+str(i), variable=self.im_vars[i], indicatoron=False) for i in range(self.num_genomes)]
     for i in range(3):
-      for j in range(3):
-        self.im_labels[i*3+j].grid(row=i, column=j)
+      for j in range(4):
+        self.im_labels[i*4+j].grid(row=i, column=j)
     self.old_im_labels = [self.im_labels[i] for i in range(self.num_genomes)]
     # buttons
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
@@ -164,13 +164,13 @@ class Gui(object):
     for var in self.im_vars:
       var.set(0)
     for i in range(3):
-      for j in range(3):
-        tkim = self.genomes[i*3+j].get_mod_thumb_tk(300)
-        self.im_labels[i*3+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*3+j], indicatoron=False, bd=10, selectcolor="green")
-        self.im_labels[i*3+j].grid(row=i, column=j)
-        self.im_labels[i*3+j].image = tkim
-        self.old_im_labels[i*3+j].destroy()
-        self.old_im_labels[i*3+j] = self.im_labels[i*3+j]
+      for j in range(4):
+        tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
+        self.im_labels[i*4+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
+        self.im_labels[i*4+j].grid(row=i, column=j)
+        self.im_labels[i*4+j].image = tkim
+        self.old_im_labels[i*4+j].destroy()
+        self.old_im_labels[i*4+j] = self.im_labels[i*4+j]
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
