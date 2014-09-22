@@ -161,10 +161,24 @@ class Gui(object):
     self.mutation_scale.grid(row=3, column=2)
     self.mutation_scale.set(15)
     # buttons
+    self.reset_button = tk.Button(self.root, text="reset", command=self.reset)
+    self.reset_button.grid(row=4, column=1)
     self.gen_button = tk.Button(self.root, text="gen", command=self.show_genomes)
     self.gen_button.grid(row=4, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
     self.exit_button.grid(row=4, column=3)
+  def reset(self):
+    self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
+    for var in self.im_vars:
+      var.set(0)
+    for i in range(3):
+      for j in range(4):
+        tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
+        self.im_labels[i*4+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
+        self.im_labels[i*4+j].grid(row=i, column=j)
+        self.im_labels[i*4+j].image = tkim
+        self.old_im_labels[i*4+j].destroy()
+        self.old_im_labels[i*4+j] = self.im_labels[i*4+j]
   def evolve(self):
     good_genomes = [self.genomes[i] for i in range(self.num_genomes) if self.im_vars[i].get()]
     if len(good_genomes) == 0:
