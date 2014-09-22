@@ -169,8 +169,8 @@ class Gui(object):
     self.reset_button.grid(row=4, column=0)
     self.save_button = tk.Button(self.root, text="save", command=self.save)
     self.save_button.grid(row=4, column=1)
-    self.gen_button = tk.Button(self.root, text="gen", command=self.show_genomes)
-    self.gen_button.grid(row=4, column=2)
+    self.evo_button = tk.Button(self.root, text="evolve", command=self.show_genomes)
+    self.evo_button.grid(row=4, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
     self.exit_button.grid(row=4, column=3)
   def save(self):
