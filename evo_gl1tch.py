@@ -117,10 +117,13 @@ class Gui(object):
     # slider
     self.length_scale = tk.Scale(self.root, from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
     self.length_scale.grid(row=3, column=0)
+  def evolve(self):
+    for i in range(self.num_genomes):
+      self.genomes[i] = Genome(self.filename, self.length_scale.get())
   def show_genomes(self):
+    self.evolve()
     for i in range(3):
       for j in range(3):
-        self.genomes[i*3+j] = Genome(self.filename, self.length_scale.get())
         tkim = self.genomes[i*3+j].get_mod_thumb_tk(300)
         self.im_labels[i*3+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*3+j], indicatoron=False, bd=10, selectcolor="green") 
         self.im_labels[i*3+j].grid(row=i, column=j)
@@ -130,7 +133,7 @@ class Gui(object):
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
-    PRINT "USAGE: " + sys.argv[0] + " image"
+    print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
   root = tk.Tk()
   gui = Gui(root, sys.argv[1])
