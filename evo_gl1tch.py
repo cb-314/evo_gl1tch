@@ -1,6 +1,7 @@
 import sys
 import random
 import copy
+import time
 from PIL import Image, ImageTk
 from io import BytesIO
 import Tkinter as tk
@@ -77,6 +78,9 @@ class Genome(object):
     except:
       return False
     return True
+  def save(self, prefix):
+    im = self.get_mod()
+    im.save(prefix + "_" + time.strftime("%Y%m%d_%H%M%S") + ".jpg")
   def update(self, param, mutation_prob):
     self.param = param
     self.mutation_prob = mutation_prob
@@ -162,11 +166,17 @@ class Gui(object):
     self.mutation_scale.set(15)
     # buttons
     self.reset_button = tk.Button(self.root, text="reset", command=self.reset)
-    self.reset_button.grid(row=4, column=1)
+    self.reset_button.grid(row=4, column=0)
+    self.save_button = tk.Button(self.root, text="save", command=self.save)
+    self.save_button.grid(row=4, column=1)
     self.gen_button = tk.Button(self.root, text="gen", command=self.show_genomes)
     self.gen_button.grid(row=4, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
     self.exit_button.grid(row=4, column=3)
+  def save(self):
+    for i in range(self.num_genomes):
+      if self.im_vars[i].get():
+        self.genomes[i].save("img" + str(i).zfill(3))
   def reset(self):
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     for var in self.im_vars:
