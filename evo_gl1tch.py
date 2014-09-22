@@ -60,10 +60,11 @@ class ActionMove(Action):
     self.insert = random.randint(0, self.size-(self.end-self.begin)-1)
 
 class Genome(object):
-  def __init__(self, filename, length, param):
+  def __init__(self, filename, length, param, mutation_prob):
     self.im_data = list(open(filename, "rb").read())
     self.size = len(self.im_data)
     self.param = param
+    self.mutation_prob = mutation_prob
     self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
     while not self.test():
       self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
@@ -76,8 +77,9 @@ class Genome(object):
     except:
       return False
     return True
-  def update(self, param):
+  def update(self, param, mutation_prob):
     self.param = param
+    self.mutation_prob = mutation_prob
     for action in self.genome:
       action.update(param)
     while not self.test():
@@ -95,12 +97,12 @@ class Genome(object):
   def mutate(self):
     old_genome = copy.deepcopy(self.genome)
     for action in self.genome:
-      if random.random() < 0.1:
+      if random.random() < self.mutation_prob:
         action.mutate()
     while not self.test():
       self.genome = copy.deepcopy(old_genome)
       for action in self.genome:
-        if random.random() < 0.1:
+        if random.random() < self.mutation_prob:
           action.mutate()
   def cross(self, other):
     new_genome = copy.deepcopy(other)
@@ -135,38 +137,46 @@ class Gui(object):
     self.filename = filename
     self.num_genomes = 12
     # generate initial genomes
-    self.genomes = [Genome(self.filename, 0, 0) for i in range(self.num_genomes)]
+    self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     # GUI
     self.root = root
     # image
     self.im_vars = [tk.IntVar() for i in range(self.num_genomes)]
-    self.im_labels = [tk.Checkbutton(self.root, text="genome "+str(i), variable=self.im_vars[i], indicatoron=False) for i in range(self.num_genomes)]
+    self.im_labels = []
     for i in range(3):
       for j in range(4):
+        tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
+        self.im_labels.append(tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green"))
         self.im_labels[i*4+j].grid(row=i, column=j)
+        self.im_labels[i*4+j].image = tkim
     self.old_im_labels = [self.im_labels[i] for i in range(self.num_genomes)]
     # slider
     self.length_scale = tk.Scale(self.root, from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
     self.length_scale.grid(row=3, column=0)
+    self.length_scale.set(4)
     self.param_scale = tk.Scale(self.root, from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
     self.param_scale.grid(row=3, column=1)
+    self.param_scale.set(70)
+    self.mutation_scale = tk.Scale(self.root, from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
+    self.mutation_scale.grid(row=3, column=2)
+    self.mutation_scale.set(15)
     # buttons
     self.gen_button = tk.Button(self.root, text="gen", command=self.show_genomes)
-    self.gen_button.grid(row=3, column=2)
+    self.gen_button.grid(row=4, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
-    self.exit_button.grid(row=3, column=3)
+    self.exit_button.grid(row=4, column=3)
   def evolve(self):
     good_genomes = [self.genomes[i] for i in range(self.num_genomes) if self.im_vars[i].get()]
     if len(good_genomes) == 0:
       for i in range(self.num_genomes):
-        self.genomes[i] = Genome(self.filename, self.length_scale.get(), self.param_scale.get())
+        self.genomes[i] = Genome(self.filename, self.length_scale.get(), self.param_scale.get(), float(self.mutation_scale.get())/100.0)
     else:
       for i in range(self.num_genomes):
         self.genomes[i] = random.choice(good_genomes).cross(random.choice(good_genomes))
         self.genomes[i].mutate()
   def show_genomes(self):
     for genome in self.genomes:
-      genome.update(self.param_scale.get())
+      genome.update(self.param_scale.get(), float(self.mutation_scale.get())/100.0)
     if len(self.genomes[0].genome) != self.length_scale.get():
       for genome in self.genomes:
         genome.resize(self.length_scale.get())
