@@ -6,50 +6,49 @@ from io import BytesIO
 import Tkinter as tk
 
 class Action(object):
-  def __init__(self, size):
+  def __init__(self, size, param):
     self.size = size
+    self.param = param
   def mod(self, image):
     return image
   def mutate(self):
     pass
+  def update(self, param):
+    self.param = param
 
 class ActionDoNothing(Action):
-  def __init__(self, size):
-    Action.__init__(self, size)
-  def mod(self, image):
-    return image
-  def mutate(self):
-    pass
+  def __init__(self, size, param):
+    Action.__init__(self, size, param)
 
 class ActionDelete(Action):
-  def __init__(self, size):
-    Action.__init__(self, size)
+  def __init__(self, size, param):
+    Action.__init__(self, size, param)
     self.begin = random.randint(0, self.size-1)
-    self.end = random.randint(self.begin, self.size-1)
+    self.end = random.randint(self.begin, min(self.begin+self.param, self.size-1))
   def mod(self, image):
     newimage = list(image)
     del newimage[self.begin:self.end]
     return newimage
   def mutate(self):
     self.begin = random.randint(0, self.size-1)
-    self.end = random.randint(self.begin, self.size-1)
+    self.end = random.randint(self.begin, min(self.begin+self.param, self.size-1))
 
 class ActionAdd(Action):
-  def __init__(self, size):
-    Action.__init__(self, size)
+  def __init__(self, size, param):
+    Action.__init__(self, size, param)
     self.begin = random.randint(0, self.size-1)
-    self.chunk = [chr(random.randint(0, 255)) for i in range(random.randint(1, 10000))]
+    self.chunk = [chr(random.randint(0, 255)) for i in range(random.randint(1, self.param))]
   def mod(self, image):
     return image[:self.begin] + self.chunk + image[self.begin:]
   def mutate(self):
     self.begin = random.randint(0, self.size-1)
-    self.chunk = [chr(random.randint(0, 255)) for i in range(random.randint(1, 10000))]
+    self.chunk = [chr(random.randint(0, 255)) for i in range(random.randint(1, self.param))]
 
 class ActionMove(Action):
-  def __init__(self, size):
-    Action.__init__(self, size)
+  def __init__(self, size, param):
+    Action.__init__(self, size, param)
     self.begin = random.randint(0, self.size-1)
-    self.end = random.randint(self.begin, self.size-1)
+    self.end = random.randint(self.begin, min(self.begin+self.param, self.size-1))
     self.insert = random.randint(0, self.size-(self.end-self.begin)-1)
   def mod(self, image):
     newimage = list(image)
@@ -57,16 +56,17 @@ class ActionMove(Action):
     return newimage[:self.insert] + image[self.begin:self.end] + newimage[self.insert:]
   def mutate(self):
     self.begin = random.randint(0, self.size-1)
-    self.end = random.randint(self.begin, self.size-1)
+    self.end = random.randint(self.begin, min(self.begin+self.param, self.size-1))
     self.insert = random.randint(0, self.size-(self.end-self.begin)-1)
 
 class Genome(object):
-  def __init__(self, filename, length):
+  def __init__(self, filename, length, param):
     self.im_data = list(open(filename, "rb").read())
     self.size = len(self.im_data)
-    self.genome = [random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)]) for i in range(length)]
+    self.param = param
+    self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
     while not self.test():
-      self.genome = [random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)]) for i in range(length)]
+      self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
   def test(self):
     im = list(self.im_data)
     for action in self.genome:
@@ -76,6 +76,12 @@ class Genome(object):
     except:
       return False
     return True
+  def update(self, param):
+    self.param = param
+    for action in self.genome:
+      action.update(param)
+    while not self.test():
+      self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
   def resize(self, length):
     if length < len(self.genome):
       while length != len(self.genome):
@@ -83,9 +89,9 @@ class Genome(object):
         del self.genome[pos]
     elif length > len(self.genome):
       splice = random.randint(0, len(self.genome))
-      self.genome.insert(splice, random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)]))
+      self.genome.insert(splice, random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]))
       while not self.test():
-        self.genome[splice] = random.choice([ActionDoNothing(self.size), ActionDelete(self.size), ActionAdd(self.size), ActionMove(self.size)])
+        self.genome[splice] = random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)])
   def mutate(self):
     old_genome = copy.deepcopy(self.genome)
     for action in self.genome:
@@ -129,7 +135,7 @@ class Gui(object):
     self.filename = filename
     self.num_genomes = 12
     # generate initial genomes
-    self.genomes = [Genome(self.filename, 0) for i in range(self.num_genomes)]
+    self.genomes = [Genome(self.filename, 0, 0) for i in range(self.num_genomes)]
     # GUI
     self.root = root
     # image
@@ -139,24 +145,28 @@ class Gui(object):
       for j in range(4):
         self.im_labels[i*4+j].grid(row=i, column=j)
     self.old_im_labels = [self.im_labels[i] for i in range(self.num_genomes)]
-    # buttons
-    self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
-    self.exit_button.grid(row=3, column=2)
-    self.gen_button = tk.Button(self.root, text="gen", command=self.show_genomes)
-    self.gen_button.grid(row=3, column=1)
     # slider
     self.length_scale = tk.Scale(self.root, from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
     self.length_scale.grid(row=3, column=0)
+    self.param_scale = tk.Scale(self.root, from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
+    self.param_scale.grid(row=3, column=1)
+    # buttons
+    self.gen_button = tk.Button(self.root, text="gen", command=self.show_genomes)
+    self.gen_button.grid(row=3, column=2)
+    self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
+    self.exit_button.grid(row=3, column=3)
   def evolve(self):
     good_genomes = [self.genomes[i] for i in range(self.num_genomes) if self.im_vars[i].get()]
     if len(good_genomes) == 0:
       for i in range(self.num_genomes):
-        self.genomes[i] = Genome(self.filename, self.length_scale.get())
+        self.genomes[i] = Genome(self.filename, self.length_scale.get(), self.param_scale.get())
     else:
       for i in range(self.num_genomes):
         self.genomes[i] = random.choice(good_genomes).cross(random.choice(good_genomes))
         self.genomes[i].mutate()
   def show_genomes(self):
+    for genome in self.genomes:
+      genome.update(self.param_scale.get())
     if len(self.genomes[0].genome) != self.length_scale.get():
       for genome in self.genomes:
         genome.resize(self.length_scale.get())
