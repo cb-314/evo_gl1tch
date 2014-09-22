@@ -80,7 +80,6 @@ class Genome(object):
   def get_mod_thumb(self, width):
     im = self.get_mod()
     height = int(float(im.size[1])/float(im.size[0]) * width)
-    print width, height, im.size
     im = im.resize((width, height))
     return im
   def get_mod_thumb_tk(self, width):
@@ -123,7 +122,7 @@ class Gui(object):
       for j in range(3):
         self.genomes[i*3+j] = Genome(self.filename, self.length_scale.get())
         tkim = self.genomes[i*3+j].get_mod_thumb_tk(300)
-        self.im_labels[i*3+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*3+j], indicatoron=False, bd=10) 
+        self.im_labels[i*3+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*3+j], indicatoron=False, bd=10, selectcolor="green") 
         self.im_labels[i*3+j].grid(row=i, column=j)
         self.im_labels[i*3+j].image = tkim
         self.old_im_labels[i*3+j].destroy()
@@ -131,7 +130,7 @@ class Gui(object):
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
-    print "USAGE: " + sys.argv[0] + " image"
+    PRINT "USAGE: " + sys.argv[0] + " image"
     sys.exit()
   root = tk.Tk()
   gui = Gui(root, sys.argv[1])
