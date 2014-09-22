@@ -66,9 +66,19 @@ class Genome(object):
     self.size = len(self.im_data)
     self.param = param
     self.mutation_prob = mutation_prob
-    self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
+    self.genome = [random.choice(
+      [ActionDoNothing(self.size, self.param), 
+      ActionDelete(self.size, self.param), 
+      ActionAdd(self.size, self.param), 
+      ActionMove(self.size, self.param)]) 
+    for i in range(length)]
     while not self.test():
-      self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
+      self.genome = [random.choice(
+        [ActionDoNothing(self.size, self.param), 
+        ActionDelete(self.size, self.param), 
+        ActionAdd(self.size, self.param), 
+        ActionMove(self.size, self.param)]) 
+      for i in range(length)]
   def test(self):
     im = list(self.im_data)
     for action in self.genome:
@@ -87,7 +97,12 @@ class Genome(object):
     for action in self.genome:
       action.update(param)
     while not self.test():
-      self.genome = [random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]) for i in range(length)]
+      self.genome = [random.choice(
+        [ActionDoNothing(self.size, self.param), 
+        ActionDelete(self.size, self.param), 
+        ActionAdd(self.size, self.param),
+        ActionMove(self.size, self.param)]) 
+      for i in range(length)]
   def resize(self, length):
     if length < len(self.genome):
       while length != len(self.genome):
@@ -95,9 +110,17 @@ class Genome(object):
         del self.genome[pos]
     elif length > len(self.genome):
       splice = random.randint(0, len(self.genome))
-      self.genome.insert(splice, random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)]))
+      self.genome.insert(splice, random.choice(
+        [ActionDoNothing(self.size, self.param), 
+        ActionDelete(self.size, self.param), 
+        ActionAdd(self.size, self.param), 
+        ActionMove(self.size, self.param)]))
       while not self.test():
-        self.genome[splice] = random.choice([ActionDoNothing(self.size, self.param), ActionDelete(self.size, self.param), ActionAdd(self.size, self.param), ActionMove(self.size, self.param)])
+        self.genome[splice] = random.choice(
+          [ActionDoNothing(self.size, self.param), 
+          ActionDelete(self.size, self.param), 
+          ActionAdd(self.size, self.param), 
+          ActionMove(self.size, self.param)])
   def mutate(self):
     old_genome = copy.deepcopy(self.genome)
     for action in self.genome:
@@ -150,18 +173,22 @@ class Gui(object):
     for i in range(3):
       for j in range(4):
         tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
-        self.im_labels.append(tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green"))
+        self.im_labels.append(tk.Checkbutton(self.root, 
+          image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green"))
         self.im_labels[i*4+j].grid(row=i, column=j)
         self.im_labels[i*4+j].image = tkim
     self.old_im_labels = [self.im_labels[i] for i in range(self.num_genomes)]
     # slider
-    self.length_scale = tk.Scale(self.root, from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
+    self.length_scale = tk.Scale(self.root, 
+      from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
     self.length_scale.grid(row=3, column=0)
     self.length_scale.set(4)
-    self.param_scale = tk.Scale(self.root, from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
+    self.param_scale = tk.Scale(self.root, 
+      from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
     self.param_scale.grid(row=3, column=1)
     self.param_scale.set(70)
-    self.mutation_scale = tk.Scale(self.root, from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
+    self.mutation_scale = tk.Scale(self.root, 
+      from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
     self.mutation_scale.grid(row=3, column=2)
     self.mutation_scale.set(15)
     # buttons
@@ -184,7 +211,8 @@ class Gui(object):
     for i in range(3):
       for j in range(4):
         tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
-        self.im_labels[i*4+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
+        self.im_labels[i*4+j] = tk.Checkbutton(self.root, 
+          image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
         self.im_labels[i*4+j].grid(row=i, column=j)
         self.im_labels[i*4+j].image = tkim
         self.old_im_labels[i*4+j].destroy()
@@ -210,7 +238,8 @@ class Gui(object):
     for i in range(3):
       for j in range(4):
         tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
-        self.im_labels[i*4+j] = tk.Checkbutton(self.root, image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
+        self.im_labels[i*4+j] = tk.Checkbutton(self.root, 
+          image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
         self.im_labels[i*4+j].grid(row=i, column=j)
         self.im_labels[i*4+j].image = tkim
         self.old_im_labels[i*4+j].destroy()
