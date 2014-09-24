@@ -162,7 +162,7 @@ class Genome(object):
 class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
-    self.num_genomes = 12
+    self.num_genomes = 24
     # generate initial genomes
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     # GUI
@@ -170,36 +170,36 @@ class Gui(object):
     # image
     self.im_vars = [tk.IntVar() for i in range(self.num_genomes)]
     self.im_labels = []
-    for i in range(3):
-      for j in range(4):
-        tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
+    for i in range(4):
+      for j in range(6):
+        tkim = self.genomes[i*6+j].get_mod_thumb_tk(200)
         self.im_labels.append(tk.Checkbutton(self.root, 
-          image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green"))
-        self.im_labels[i*4+j].grid(row=i, column=j)
-        self.im_labels[i*4+j].image = tkim
+          image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green"))
+        self.im_labels[i*6+j].grid(row=i, column=j)
+        self.im_labels[i*6+j].image = tkim
     self.old_im_labels = [self.im_labels[i] for i in range(self.num_genomes)]
     # slider
     self.length_scale = tk.Scale(self.root, 
       from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
-    self.length_scale.grid(row=3, column=0)
+    self.length_scale.grid(row=4, column=0)
     self.length_scale.set(4)
     self.param_scale = tk.Scale(self.root, 
       from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
-    self.param_scale.grid(row=3, column=1)
+    self.param_scale.grid(row=4, column=1)
     self.param_scale.set(70)
     self.mutation_scale = tk.Scale(self.root, 
       from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
-    self.mutation_scale.grid(row=3, column=2)
+    self.mutation_scale.grid(row=4, column=2)
     self.mutation_scale.set(15)
     # buttons
     self.reset_button = tk.Button(self.root, text="reset", command=self.reset)
-    self.reset_button.grid(row=4, column=0)
+    self.reset_button.grid(row=5, column=0)
     self.save_button = tk.Button(self.root, text="save", command=self.save)
-    self.save_button.grid(row=4, column=1)
+    self.save_button.grid(row=5, column=1)
     self.evo_button = tk.Button(self.root, text="evolve", command=self.show_genomes)
-    self.evo_button.grid(row=4, column=2)
+    self.evo_button.grid(row=5, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
-    self.exit_button.grid(row=4, column=3)
+    self.exit_button.grid(row=5, column=3)
   def save(self):
     for i in range(self.num_genomes):
       if self.im_vars[i].get():
@@ -208,15 +208,15 @@ class Gui(object):
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     for var in self.im_vars:
       var.set(0)
-    for i in range(3):
-      for j in range(4):
-        tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
-        self.im_labels[i*4+j] = tk.Checkbutton(self.root, 
-          image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
-        self.im_labels[i*4+j].grid(row=i, column=j)
-        self.im_labels[i*4+j].image = tkim
-        self.old_im_labels[i*4+j].destroy()
-        self.old_im_labels[i*4+j] = self.im_labels[i*4+j]
+    for i in range(4):
+      for j in range(6):
+        tkim = self.genomes[i*6+j].get_mod_thumb_tk(300)
+        self.im_labels[i*6+j] = tk.Checkbutton(self.root, 
+          image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green")
+        self.im_labels[i*6+j].grid(row=i, column=j)
+        self.im_labels[i*6+j].image = tkim
+        self.old_im_labels[i*6+j].destroy()
+        self.old_im_labels[i*6+j] = self.im_labels[i*6+j]
   def evolve(self):
     good_genomes = [self.genomes[i] for i in range(self.num_genomes) if self.im_vars[i].get()]
     if len(good_genomes) == 0:
@@ -235,15 +235,15 @@ class Gui(object):
     self.evolve()
     for var in self.im_vars:
       var.set(0)
-    for i in range(3):
-      for j in range(4):
-        tkim = self.genomes[i*4+j].get_mod_thumb_tk(300)
-        self.im_labels[i*4+j] = tk.Checkbutton(self.root, 
-          image=tkim, variable=self.im_vars[i*4+j], indicatoron=False, bd=10, selectcolor="green")
-        self.im_labels[i*4+j].grid(row=i, column=j)
-        self.im_labels[i*4+j].image = tkim
-        self.old_im_labels[i*4+j].destroy()
-        self.old_im_labels[i*4+j] = self.im_labels[i*4+j]
+    for i in range(4):
+      for j in range(6):
+        tkim = self.genomes[i*6+j].get_mod_thumb_tk(200)
+        self.im_labels[i*6+j] = tk.Checkbutton(self.root, 
+          image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green")
+        self.im_labels[i*6+j].grid(row=i, column=j)
+        self.im_labels[i*6+j].image = tkim
+        self.old_im_labels[i*6+j].destroy()
+        self.old_im_labels[i*6+j] = self.im_labels[i*6+j]
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
