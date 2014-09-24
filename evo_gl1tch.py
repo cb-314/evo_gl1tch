@@ -223,7 +223,9 @@ class Gui(object):
       for i in range(self.num_genomes):
         self.genomes[i] = Genome(self.filename, self.length_scale.get(), self.param_scale.get(), float(self.mutation_scale.get())/100.0)
     else:
-      for i in range(self.num_genomes):
+      for i in range(len(good_genomes)):
+        self.genomes[i] = good_genomes[i]
+      for i in range(len(good_genomes), self.num_genomes):
         self.genomes[i] = random.choice(good_genomes).cross(random.choice(good_genomes))
         self.genomes[i].mutate()
   def show_genomes(self):
