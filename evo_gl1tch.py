@@ -210,7 +210,7 @@ class Gui(object):
       var.set(0)
     for i in range(4):
       for j in range(6):
-        tkim = self.genomes[i*6+j].get_mod_thumb_tk(300)
+        tkim = self.genomes[i*6+j].get_mod_thumb_tk(200)
         self.im_labels[i*6+j] = tk.Checkbutton(self.root, 
           image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green")
         self.im_labels[i*6+j].grid(row=i, column=j)
