@@ -176,7 +176,7 @@ class Gui(object):
     self.canvas_scrollbar.grid(row=1, columnspan=4, sticky=tk.E+tk.W)
     self.canvas_scrollbar.config(command=self.canvas.xview)
     # plot images
-    self.im_vars = [True for i in range(self.num_genomes)]
+    self.im_vars = [False for i in range(self.num_genomes)]
     self.show_phenotypes()
     # sliders
     self.length_scale = tk.Scale(self.root, 
@@ -200,8 +200,20 @@ class Gui(object):
     self.evo_button.grid(row=3, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
     self.exit_button.grid(row=3, column=3)
+  def img_click_callback(self, event):
+    canvas = event.widget
+    x = canvas.canvasx(event.x)
+    y = canvas.canvasy(event.y)
+    closest = canvas.find_closest(x, y)
+    if closest[0] in self.im_idx.keys():
+      if self.im_vars[self.im_idx[canvas.find_closest(x, y)[0]]]:
+        self.im_vars[self.im_idx[canvas.find_closest(x, y)[0]]] = False
+      else:
+        self.im_vars[self.im_idx[canvas.find_closest(x, y)[0]]] = True
+    self.show_phenotypes()
   def show_phenotypes(self):
     self.im_refs = []
+    self.im_idx = {}
     self.canvas.delete(tk.ALL)
     self.canvas.config(scrollregion=(0, 0, self.num_genomes*(self.img_width+60), 0))
     for i in range(self.num_genomes):
@@ -210,7 +222,9 @@ class Gui(object):
       self.im_refs.append(tkim)
       if self.im_vars[i]:
         self.canvas.create_rectangle(i*(self.img_width+60)+15, 0, (i+1)*(self.img_width+60)-15, tkim.height(), fill="red")
-      idx = self.canvas.create_image((i*(self.img_width+60)+self.img_width/2+30, tkim.height()/2), image=tkim, )
+      idx = self.canvas.create_image((i*(self.img_width+60)+self.img_width/2+30, tkim.height()/2), image=tkim, tags="img")
+      self.im_idx[idx] = i
+    self.canvas.tag_bind("img", "<ButtonPress-1>", self.img_click_callback)
   def save(self):
     for i in range(self.num_genomes):
       if self.im_vars[i]:
