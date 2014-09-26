@@ -163,62 +163,73 @@ class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
     self.num_genomes = 24
+    self.img_width = 640
     # generate initial genomes
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     # GUI
     self.root = root
-    # image
-    self.im_vars = [tk.IntVar() for i in range(self.num_genomes)]
-    self.im_labels = []
-    for i in range(4):
-      for j in range(6):
-        tkim = self.genomes[i*6+j].get_mod_thumb_tk(200)
-        self.im_labels.append(tk.Checkbutton(self.root, 
-          image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green"))
-        self.im_labels[i*6+j].grid(row=i, column=j)
-        self.im_labels[i*6+j].image = tkim
-    self.old_im_labels = [self.im_labels[i] for i in range(self.num_genomes)]
-    # slider
+    # setup canvas and scrollbar
+    self.canvas_scrollbar = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
+    self.canvas = tk.Canvas(self.root, width=2*self.img_width, xscrollcommand=self.canvas_scrollbar.set)
+    self.canvas.grid(row=0, columnspan=4)
+    # config scrollbar
+    self.canvas_scrollbar.grid(row=1, columnspan=4, sticky=tk.E+tk.W)
+    self.canvas_scrollbar.config(command=self.canvas.xview)
+    # plot images
+    self.im_vars = [True for i in range(self.num_genomes)]
+    self.show_phenotypes()
+    # sliders
     self.length_scale = tk.Scale(self.root, 
       from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
-    self.length_scale.grid(row=4, column=0)
+    self.length_scale.grid(row=2, column=0)
     self.length_scale.set(4)
     self.param_scale = tk.Scale(self.root, 
       from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
-    self.param_scale.grid(row=4, column=1)
+    self.param_scale.grid(row=2, column=1)
     self.param_scale.set(70)
     self.mutation_scale = tk.Scale(self.root, 
       from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
-    self.mutation_scale.grid(row=4, column=2)
+    self.mutation_scale.grid(row=2, column=2)
     self.mutation_scale.set(15)
     # buttons
     self.reset_button = tk.Button(self.root, text="reset", command=self.reset)
-    self.reset_button.grid(row=5, column=0)
+    self.reset_button.grid(row=3, column=0)
     self.save_button = tk.Button(self.root, text="save", command=self.save)
-    self.save_button.grid(row=5, column=1)
-    self.evo_button = tk.Button(self.root, text="evolve", command=self.show_genomes)
-    self.evo_button.grid(row=5, column=2)
+    self.save_button.grid(row=3, column=1)
+    self.evo_button = tk.Button(self.root, text="evolve", command=self.evolve)
+    self.evo_button.grid(row=3, column=2)
     self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
-    self.exit_button.grid(row=5, column=3)
+    self.exit_button.grid(row=3, column=3)
+  def show_phenotypes(self):
+    self.im_refs = []
+    self.canvas.delete(tk.ALL)
+    self.canvas.config(scrollregion=(0, 0, self.num_genomes*(self.img_width+60), 0))
+    for i in range(self.num_genomes):
+      tkim = self.genomes[i].get_mod_thumb_tk(self.img_width)
+      self.canvas.config(height=tkim.height())
+      self.im_refs.append(tkim)
+      if self.im_vars[i]:
+        self.canvas.create_rectangle(i*(self.img_width+60)+15, 0, (i+1)*(self.img_width+60)-15, tkim.height(), fill="red")
+      idx = self.canvas.create_image((i*(self.img_width+60)+self.img_width/2+30, tkim.height()/2), image=tkim, )
   def save(self):
     for i in range(self.num_genomes):
-      if self.im_vars[i].get():
+      if self.im_vars[i]:
         self.genomes[i].save("img" + str(i).zfill(3))
   def reset(self):
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     for var in self.im_vars:
-      var.set(0)
-    for i in range(4):
-      for j in range(6):
-        tkim = self.genomes[i*6+j].get_mod_thumb_tk(200)
-        self.im_labels[i*6+j] = tk.Checkbutton(self.root, 
-          image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green")
-        self.im_labels[i*6+j].grid(row=i, column=j)
-        self.im_labels[i*6+j].image = tkim
-        self.old_im_labels[i*6+j].destroy()
-        self.old_im_labels[i*6+j] = self.im_labels[i*6+j]
+      var = False
+    self.show_phenotypes()
   def evolve(self):
-    good_genomes = [self.genomes[i] for i in range(self.num_genomes) if self.im_vars[i].get()]
+    # first look for genome parameter changes
+    for genome in self.genomes:
+      genome.update(self.param_scale.get(), float(self.mutation_scale.get())/100.0)
+    if len(self.genomes[0].genome) != self.length_scale.get():
+      for genome in self.genomes:
+        genome.resize(self.length_scale.get())
+    # then find selected genomes
+    good_genomes = [self.genomes[i] for i in range(self.num_genomes) if self.im_vars[i]]
+    # and evolve
     if len(good_genomes) == 0:
       for i in range(self.num_genomes):
         self.genomes[i] = Genome(self.filename, self.length_scale.get(), self.param_scale.get(), float(self.mutation_scale.get())/100.0)
@@ -228,24 +239,10 @@ class Gui(object):
       for i in range(len(good_genomes), self.num_genomes):
         self.genomes[i] = random.choice(good_genomes).cross(random.choice(good_genomes))
         self.genomes[i].mutate()
-  def show_genomes(self):
-    for genome in self.genomes:
-      genome.update(self.param_scale.get(), float(self.mutation_scale.get())/100.0)
-    if len(self.genomes[0].genome) != self.length_scale.get():
-      for genome in self.genomes:
-        genome.resize(self.length_scale.get())
-    self.evolve()
+    # then reset the gui
     for var in self.im_vars:
-      var.set(0)
-    for i in range(4):
-      for j in range(6):
-        tkim = self.genomes[i*6+j].get_mod_thumb_tk(200)
-        self.im_labels[i*6+j] = tk.Checkbutton(self.root, 
-          image=tkim, variable=self.im_vars[i*6+j], indicatoron=False, bd=10, selectcolor="green")
-        self.im_labels[i*6+j].grid(row=i, column=j)
-        self.im_labels[i*6+j].image = tkim
-        self.old_im_labels[i*6+j].destroy()
-        self.old_im_labels[i*6+j] = self.im_labels[i*6+j]
+      var = False
+    self.show_phenotypes()
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
