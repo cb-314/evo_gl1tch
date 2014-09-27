@@ -167,7 +167,7 @@ class Genome(object):
 class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
-    self.num_genomes = 24
+    self.num_genomes = 20
     self.img_width = 640
     self.img_height = 480
     self.old_ctrl_height = None
@@ -180,17 +180,21 @@ class Gui(object):
     # frame to get all the controls
     self.control_frame = tk.Frame(self.root, width=self.img_width)
     # sliders
+    self.population_scale = tk.Scale(self.control_frame, 
+      from_=1, to=100, label="population size", orient=tk.HORIZONTAL, length=200, command=self.population_size_callback)
+    self.population_scale.grid(row=1, column=0)
+    self.population_scale.set(self.num_genomes)
     self.length_scale = tk.Scale(self.control_frame, 
       from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
-    self.length_scale.grid(row=1, column=0)
+    self.length_scale.grid(row=1, column=1)
     self.length_scale.set(4)
     self.param_scale = tk.Scale(self.control_frame, 
       from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
-    self.param_scale.grid(row=1, column=1)
+    self.param_scale.grid(row=1, column=2)
     self.param_scale.set(70)
     self.mutation_scale = tk.Scale(self.control_frame, 
       from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
-    self.mutation_scale.grid(row=1, column=2)
+    self.mutation_scale.grid(row=1, column=3)
     self.mutation_scale.set(15)
     # buttons
     self.reset_button = tk.Button(self.control_frame, text="reset", command=self.reset)
@@ -213,6 +217,8 @@ class Gui(object):
     # plot images
     self.im_vars = [False for i in range(self.num_genomes)]
     self.show_phenotypes()
+  def population_size_callback(self, size):
+    self.num_genomes = int(size)
   def img_click_callback(self, event):
     canvas = event.widget
     x = canvas.canvasx(event.x)
