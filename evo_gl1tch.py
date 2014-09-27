@@ -170,11 +170,13 @@ class Gui(object):
     self.num_genomes = 24
     self.img_width = 640
     self.img_height = 480
+    self.old_ctrl_height = None
     # generate initial genomes
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     # GUI
     self.root = root
     self.root.pack(fill=tk.BOTH, expand=1)
+    self.root.bind("<Configure>", self.window_resize_callback)
     # frame to get all the controls
     self.control_frame = tk.Frame(self.root, width=self.img_width)
     # sliders
@@ -222,6 +224,10 @@ class Gui(object):
       else:
         self.im_vars[self.im_idx[canvas.find_closest(x, y)[0]]] = True
     self.show_phenotypes()
+  def window_resize_callback(self, event):
+    if self.old_ctrl_height == None :
+      self.old_ctrl_height = self.root.winfo_height() - self.root.sash_coord(0)[1]
+    self.root.sash_place(0, self.root.sash_coord(0)[0], self.root.winfo_height() - self.old_ctrl_height)
   def show_phenotypes(self):
     self.img_height = self.root.sash_coord(0)[1]
     self.canvas.config(height=self.img_height)
@@ -275,7 +281,7 @@ if __name__ == "__main__":
   if len(sys.argv) != 2:
     print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
-  root = tk.PanedWindow(orient=tk.VERTICAL, showhandle=True)
+  root = tk.PanedWindow(orient=tk.VERTICAL)
   gui = Gui(root, sys.argv[1])
   root.mainloop()
   root.destroy()
