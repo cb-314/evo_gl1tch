@@ -151,55 +151,66 @@ class Genome(object):
     return Image.open(BytesIO("".join(im)))
   def get_mod_tk(self):
     return ImageTk.PhotoImage(self.get_mod())
-  def get_mod_thumb(self, width):
+  def get_mod_thumb(self, width=-1, height=-1):
     im = self.get_mod()
-    height = int(float(im.size[1])/float(im.size[0]) * width)
+    if height == -1 and width != -1:
+      height = int(float(im.size[1])/float(im.size[0]) * width)
+    elif width == -1 and height != -1:
+      width = int(float(im.size[0])/float(im.size[1]) * height)
+    else:
+      return im
     im = im.resize((width, height))
     return im
-  def get_mod_thumb_tk(self, width):
-    return ImageTk.PhotoImage(self.get_mod_thumb(width))
+  def get_mod_thumb_tk(self, width=-1, height=-1):
+    return ImageTk.PhotoImage(self.get_mod_thumb(width, height))
 
 class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
     self.num_genomes = 24
     self.img_width = 640
+    self.img_height = 480
     # generate initial genomes
     self.genomes = [Genome(self.filename, 0, 0, 0) for i in range(self.num_genomes)]
     # GUI
     self.root = root
+    self.root.pack(fill=tk.BOTH, expand=1)
+    # frame to get all the controls
+    self.control_frame = tk.Frame(self.root, width=self.img_width)
+    # sliders
+    self.length_scale = tk.Scale(self.control_frame, 
+      from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
+    self.length_scale.grid(row=1, column=0)
+    self.length_scale.set(4)
+    self.param_scale = tk.Scale(self.control_frame, 
+      from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
+    self.param_scale.grid(row=1, column=1)
+    self.param_scale.set(70)
+    self.mutation_scale = tk.Scale(self.control_frame, 
+      from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
+    self.mutation_scale.grid(row=1, column=2)
+    self.mutation_scale.set(15)
+    # buttons
+    self.reset_button = tk.Button(self.control_frame, text="reset", command=self.reset)
+    self.reset_button.grid(row=2, column=0)
+    self.save_button = tk.Button(self.control_frame, text="save", command=self.save)
+    self.save_button.grid(row=2, column=1)
+    self.evo_button = tk.Button(self.control_frame, text="evolve", command=self.evolve)
+    self.evo_button.grid(row=2, column=2)
+    self.exit_button = tk.Button(self.control_frame, text="Exit", command=self.control_frame.quit)
+    self.exit_button.grid(row=2, column=3)
     # setup canvas and scrollbar
-    self.canvas_scrollbar = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
-    self.canvas = tk.Canvas(self.root, width=2*self.img_width, xscrollcommand=self.canvas_scrollbar.set)
-    self.canvas.grid(row=0, columnspan=4)
+    self.canvas_scrollbar = tk.Scrollbar(self.control_frame, orient=tk.HORIZONTAL)
+    self.canvas = tk.Canvas(self.root, width=self.img_width, height=self.img_height, xscrollcommand=self.canvas_scrollbar.set)
     # config scrollbar
-    self.canvas_scrollbar.grid(row=1, columnspan=4, sticky=tk.E+tk.W)
     self.canvas_scrollbar.config(command=self.canvas.xview)
+    self.canvas_scrollbar.grid(row=0, columnspan=4, sticky=tk.E+tk.W)
+    # add stuff to window
+    self.root.add(self.canvas)
+    self.root.add(self.control_frame)
     # plot images
     self.im_vars = [False for i in range(self.num_genomes)]
     self.show_phenotypes()
-    # sliders
-    self.length_scale = tk.Scale(self.root, 
-      from_=0, to=10, label="genome length", orient=tk.HORIZONTAL, length=200)
-    self.length_scale.grid(row=2, column=0)
-    self.length_scale.set(4)
-    self.param_scale = tk.Scale(self.root, 
-      from_=1, to=1000, label="param", orient=tk.HORIZONTAL, length=200)
-    self.param_scale.grid(row=2, column=1)
-    self.param_scale.set(70)
-    self.mutation_scale = tk.Scale(self.root, 
-      from_=0, to=100, label="mutation probability", orient=tk.HORIZONTAL, length=200)
-    self.mutation_scale.grid(row=2, column=2)
-    self.mutation_scale.set(15)
-    # buttons
-    self.reset_button = tk.Button(self.root, text="reset", command=self.reset)
-    self.reset_button.grid(row=3, column=0)
-    self.save_button = tk.Button(self.root, text="save", command=self.save)
-    self.save_button.grid(row=3, column=1)
-    self.evo_button = tk.Button(self.root, text="evolve", command=self.evolve)
-    self.evo_button.grid(row=3, column=2)
-    self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
-    self.exit_button.grid(row=3, column=3)
   def img_click_callback(self, event):
     canvas = event.widget
     x = canvas.canvasx(event.x)
@@ -212,17 +223,19 @@ class Gui(object):
         self.im_vars[self.im_idx[canvas.find_closest(x, y)[0]]] = True
     self.show_phenotypes()
   def show_phenotypes(self):
+    self.img_height = self.root.sash_coord(0)[1]
+    self.canvas.config(height=self.img_height)
     self.im_refs = []
     self.im_idx = {}
     self.canvas.delete(tk.ALL)
-    self.canvas.config(scrollregion=(0, 0, self.num_genomes*(self.img_width+60), 0))
     for i in range(self.num_genomes):
-      tkim = self.genomes[i].get_mod_thumb_tk(self.img_width)
-      self.canvas.config(height=tkim.height())
+      tkim = self.genomes[i].get_mod_thumb_tk(height=self.img_height)
+      self.img_width = tkim.width()
+      self.canvas.config(scrollregion=(0, 0, self.num_genomes*(self.img_width+60), 0))
       self.im_refs.append(tkim)
       if self.im_vars[i]:
-        self.canvas.create_rectangle(i*(self.img_width+60)+15, 0, (i+1)*(self.img_width+60)-15, tkim.height(), fill="red")
-      idx = self.canvas.create_image((i*(self.img_width+60)+self.img_width/2+30, tkim.height()/2), image=tkim, tags="img")
+        self.canvas.create_rectangle(i*(self.img_width+60)+15, 0, (i+1)*(self.img_width+60)-15, self.img_height, fill="red")
+      idx = self.canvas.create_image((i*(self.img_width+60)+self.img_width/2+30, self.img_height/2), image=tkim, tags="img")
       self.im_idx[idx] = i
     self.canvas.tag_bind("img", "<ButtonPress-1>", self.img_click_callback)
   def save(self):
@@ -262,7 +275,7 @@ if __name__ == "__main__":
   if len(sys.argv) != 2:
     print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
-  root = tk.Tk()
+  root = tk.PanedWindow(orient=tk.VERTICAL, showhandle=True)
   gui = Gui(root, sys.argv[1])
   root.mainloop()
   root.destroy()
