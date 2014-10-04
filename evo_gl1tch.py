@@ -144,7 +144,9 @@ class Genome(object):
   def fitness(self):
     orig = [np.array(o.getdata()) for o in self.get_orig().split()]
     mod = [np.array(m.getdata()) for m in self.get_mod().split()]
-    fitness = sum([np.mean(abs(m-o)) for m, o in zip(orig, mod)]) + sum([np.std(m) for m in mod])
+    fitness = sum([sum([np.mean(abs(m-o)) for m, o in zip(orig, mod)]), # maximum difference
+    sum([np.std(m) for m in mod]), # no black screen
+    -abs(np.mean(mod[0]*0.299 + mod[1]*0.587 + mod[2]*0.114)-128)]) # "well" exposed
     return fitness
   def get_orig(self):
     return Image.open(BytesIO("".join(self.im_data)))
@@ -304,9 +306,9 @@ if __name__ == "__main__":
   genomes = [Genome(sys.argv[1], 4, 70, 0.15) for i in range(num_genomes)]
   for i in range(50):
     fitness = [genome.fitness() for genome in genomes]
-    print i, max(fitness)
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
     genomes = genomes[-num_elite:]
+    print i, max(fitness)
     if i % 5 == 0:
       genomes[-1].get_mod().save("img"+str(i).zfill(3)+".jpg")
     while len(genomes) < num_genomes:
