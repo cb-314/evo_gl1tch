@@ -5,6 +5,7 @@ import time
 from PIL import Image, ImageTk
 from io import BytesIO
 import Tkinter as tk
+import numpy as np
 
 class Action(object):
   def __init__(self, size, param):
@@ -140,6 +141,10 @@ class Genome(object):
       else:
         new_genome.genome[i] = copy.deepcopy(other.genome[i])
     return new_genome
+  def fitness(self):
+    orig = [np.array(o.getdata()) for o in self.get_orig().split()]
+    mod = [np.array(m.getdata()) for m in self.get_mod().split()]
+    print [[np.mean(m-o), np.std(m-o)] for m, o in zip(orig, mod)]
   def get_orig(self):
     return Image.open(BytesIO("".join(self.im_data)))
   def get_orig_tk(self):
@@ -167,7 +172,7 @@ class Genome(object):
 class Gui(object):
   def __init__(self, root, filename):
     self.filename = filename
-    self.num_genomes = 20
+    self.num_genomes = 1
     self.img_width = 640
     self.img_height = 480
     self.old_ctrl_height = None
@@ -282,12 +287,17 @@ class Gui(object):
     for var in self.im_vars:
       var = False
     self.show_phenotypes()
+    for genome in self.genomes:
+      genome.fitness()
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
     print "USAGE: " + sys.argv[0] + " image"
     sys.exit()
-  root = tk.PanedWindow(orient=tk.VERTICAL)
-  gui = Gui(root, sys.argv[1])
-  root.mainloop()
-  root.destroy()
+#  root = tk.PanedWindow(orient=tk.VERTICAL)
+#  gui = Gui(root, sys.argv[1])
+#  root.mainloop()
+#  root.destroy()
+  genome = Genome(sys.argv[1], 4, 70, 0.15)
+  genome.mutate()
+  genome.fitness()
