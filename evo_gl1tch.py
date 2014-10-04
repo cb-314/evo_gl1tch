@@ -144,7 +144,8 @@ class Genome(object):
   def fitness(self):
     orig = [np.array(o.getdata()) for o in self.get_orig().split()]
     mod = [np.array(m.getdata()) for m in self.get_mod().split()]
-    print [[np.mean(m-o), np.std(m-o)] for m, o in zip(orig, mod)]
+    fitness = sum([np.mean(abs(m-o)) for m, o in zip(orig, mod)]) + sum([np.std(m) for m in mod])
+    return fitness
   def get_orig(self):
     return Image.open(BytesIO("".join(self.im_data)))
   def get_orig_tk(self):
@@ -298,6 +299,18 @@ if __name__ == "__main__":
 #  gui = Gui(root, sys.argv[1])
 #  root.mainloop()
 #  root.destroy()
-  genome = Genome(sys.argv[1], 4, 70, 0.15)
-  genome.mutate()
-  genome.fitness()
+  num_genomes = 50
+  num_elite = 5
+  genomes = [Genome(sys.argv[1], 4, 70, 0.15) for i in range(num_genomes)]
+  for i in range(50):
+    fitness = [genome.fitness() for genome in genomes]
+    print i, max(fitness)
+    genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
+    genomes = genomes[-num_elite:]
+    if i % 5 == 0:
+      genomes[-1].get_mod().save("img"+str(i).zfill(3)+".jpg")
+    while len(genomes) < num_genomes:
+      genome = random.choice(genomes[:num_elite]).cross(random.choice(genomes[:num_elite]))
+      genome.mutate()
+      if genome.test():
+        genomes.append(genome)
