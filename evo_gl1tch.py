@@ -332,7 +332,8 @@ if __name__ == "__main__":
 #  root.mainloop()
 #  root.destroy()
   num_genomes = 100
-  num_elite = 10
+  num_best = 50
+  num_elite = 5
   genomes = [Genome(sys.argv[1], 4, 70, 0.30) for i in range(num_genomes)]
   plt.ion()
   for i in range(50):
@@ -341,7 +342,7 @@ if __name__ == "__main__":
     fitness = pool.map(calc_fitness, genomes)
 #    fitness = [genome.fitness() for genome in genomes]
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
-    genomes = genomes[-num_elite:]
+    new_genomes = genomes[-num_elite:]
     print "best fitness", max(fitness)
     plt.clf()
     plt.hist(fitness)
@@ -350,12 +351,13 @@ if __name__ == "__main__":
     for j in range(num_elite):
       genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
     print "evolving"
-    while len(genomes) < num_genomes:
-      parent1 = random.choice(genomes[:num_elite])
-      parent2 = random.choice(genomes[:num_elite])
-      if parent1 != parent2 or num_elite == 1:
+    while len(new_genomes) < num_genomes:
+      parent1 = random.choice(genomes[-num_best:])
+      parent2 = random.choice(genomes[-num_best:])
+      if parent1 != parent2:
         genome = parent1.cross(parent2)
         genome.mutate()
         if genome.test():
-          genomes.append(genome)
+          new_genomes.append(genome)
+    genomes = new_genomes
     print "finished"
