@@ -329,7 +329,8 @@ if __name__ == "__main__":
     genomes = genomes[-num_elite:]
     print i, max(fitness)
     if i % 5 == 0:
-      genomes[-1].get_mod().save("img"+str(i).zfill(3)+".jpg")
+      for j in range(num_elite):
+        genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
     while len(genomes) < num_genomes:
       genome = random.choice(genomes[:num_elite]).cross(random.choice(genomes[:num_elite]))
       genome.mutate()
