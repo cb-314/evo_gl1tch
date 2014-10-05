@@ -341,7 +341,7 @@ if __name__ == "__main__":
     while len(genomes) < num_genomes:
       parent1 = random.choice(genomes[:num_elite])
       parent2 = random.choice(genomes[:num_elite])
-      if parent1 != parent2:
+      if parent1 != parent2 or num_elite == 1:
         genome = parent1.cross(parent2)
         genome.mutate()
         if genome.test():
