@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 from io import BytesIO
 import Tkinter as tk
 import numpy as np
+import cv2
 
 class Action(object):
   def __init__(self, size, param):
@@ -142,11 +143,29 @@ class Genome(object):
         new_genome.genome[i] = copy.deepcopy(other.genome[i])
     return new_genome
   def fitness(self):
-    orig = [np.array(o.getdata()) for o in self.get_orig().split()]
-    mod = [np.array(m.getdata()) for m in self.get_mod().split()]
-    fitness = sum([sum([np.mean(abs(m-o)) for m, o in zip(orig, mod)]), # maximum difference
-    sum([np.std(m) for m in mod]), # no black screen
-    -abs(np.mean(mod[0]*0.299 + mod[1]*0.587 + mod[2]*0.114)-128)]) # "well" exposed
+    # get the two images
+    orig = self.get_orig()
+    mod = self.get_mod()
+    # find features in orig and match with mod
+    cv_orig = np.array(orig)
+    cv_mod = np.array(mod)
+    orb = cv2.ORB(nfeatures=256)
+    kp_orig = orb.detect(cv_orig)
+    kp_mod = orb.detect(cv_mod)
+    kp_orig, des_orig = orb.compute(cv_orig, kp_orig)
+    kp_mod, des_mod = orb.compute(cv_mod, kp_mod)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    matches = bf.match(des_orig, des_mod)
+    num_matches = len(matches)
+    # split and get pixel values
+    orig = [np.array(o.getdata()) for o in orig.split()]
+    mod = [np.array(m.getdata()) for m in mod.split()]
+    # calculate some pixel-level metrics
+    diff = sum([np.mean(abs(m-o)) for m, o in zip(orig, mod)])
+    vari = sum([np.std(m) for m in mod])
+    exposure = abs(np.mean(mod[0]*0.299 + mod[1]*0.587 + mod[2]*0.114) - 128)
+    # calculate fitness uniform weights up to now
+    fitness = num_matches + diff + vari - exposure
     return fitness
   def get_orig(self):
     return Image.open(BytesIO("".join(self.im_data)))
