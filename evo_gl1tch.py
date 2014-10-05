@@ -7,6 +7,7 @@ from io import BytesIO
 import Tkinter as tk
 import numpy as np
 import cv2
+import multiprocessing
 
 class Action(object):
   def __init__(self, size, param):
@@ -312,6 +313,9 @@ class Gui(object):
     for genome in self.genomes:
       genome.fitness()
 
+def calc_fitness(genome):
+  return genome.fitness()
+
 if __name__ == "__main__":
   if len(sys.argv) != 2:
     print "USAGE: " + sys.argv[0] + " image"
@@ -324,8 +328,10 @@ if __name__ == "__main__":
   num_elite = 5
   genomes = [Genome(sys.argv[1], 4, 70, 0.30) for i in range(num_genomes)]
   for i in range(50):
-    print "generation", i, num
-    fitness = [genome.fitness() for genome in genomes]
+    print "generation", i
+    pool = multiprocessing.Pool(processes=4)
+    fitness = pool.map(calc_fitness, genomes)
+#    fitness = [genome.fitness() for genome in genomes]
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
     genomes = genomes[-num_elite:]
     print "best fitness", max(fitness)
