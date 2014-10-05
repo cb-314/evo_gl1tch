@@ -320,11 +320,11 @@ if __name__ == "__main__":
 #  gui = Gui(root, sys.argv[1])
 #  root.mainloop()
 #  root.destroy()
-  num_genomes = 100
-  num_elite = 10
-  genomes = [Genome(sys.argv[1], 6, 70, 0.30) for i in range(num_genomes)]
+  num_genomes = 50
+  num_elite = 5
+  genomes = [Genome(sys.argv[1], 4, 70, 0.30) for i in range(num_genomes)]
   for i in range(50):
-    print "generation", i
+    print "generation", i, num
     fitness = [genome.fitness() for genome in genomes]
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
     genomes = genomes[-num_elite:]
