@@ -320,19 +320,24 @@ if __name__ == "__main__":
 #  gui = Gui(root, sys.argv[1])
 #  root.mainloop()
 #  root.destroy()
-  num_genomes = 50
-  num_elite = 5
-  genomes = [Genome(sys.argv[1], 4, 70, 0.15) for i in range(num_genomes)]
+  num_genomes = 100
+  num_elite = 10
+  genomes = [Genome(sys.argv[1], 6, 70, 0.30) for i in range(num_genomes)]
   for i in range(50):
+    print "generation", i
     fitness = [genome.fitness() for genome in genomes]
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
     genomes = genomes[-num_elite:]
-    print i, max(fitness)
-    if i % 5 == 0:
-      for j in range(num_elite):
-        genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
+    print "best fitness", max(fitness)
+    for j in range(num_elite):
+      genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
+    print "evolving"
     while len(genomes) < num_genomes:
-      genome = random.choice(genomes[:num_elite]).cross(random.choice(genomes[:num_elite]))
-      genome.mutate()
-      if genome.test():
-        genomes.append(genome)
+      parent1 = random.choice(genomes[:num_elite])
+      parent2 = random.choice(genomes[:num_elite])
+      if parent1 != parent2:
+        genome = parent1.cross(parent2)
+        genome.mutate()
+        if genome.test():
+          genomes.append(genome)
+    print "finished"
