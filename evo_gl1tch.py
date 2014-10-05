@@ -8,6 +8,7 @@ import Tkinter as tk
 import numpy as np
 import cv2
 import multiprocessing
+from matplotlib import pyplot as plt
 
 class Action(object):
   def __init__(self, size, param):
@@ -333,6 +334,7 @@ if __name__ == "__main__":
   num_genomes = 100
   num_elite = 10
   genomes = [Genome(sys.argv[1], 4, 70, 0.30) for i in range(num_genomes)]
+  plt.ion()
   for i in range(50):
     print "generation", i
     pool = multiprocessing.Pool(processes=4)
@@ -341,6 +343,10 @@ if __name__ == "__main__":
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
     genomes = genomes[-num_elite:]
     print "best fitness", max(fitness)
+    plt.clf()
+    plt.hist(fitness)
+    plt.title("generation "+str(i))
+    plt.draw()
     for j in range(num_elite):
       genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
     print "evolving"
