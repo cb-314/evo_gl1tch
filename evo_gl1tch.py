@@ -7,8 +7,8 @@ from io import BytesIO
 import Tkinter as tk
 import numpy as np
 import cv2
-import multiprocessing
 from matplotlib import pyplot as plt
+import argparse
 
 class Action(object):
   def __init__(self, size, param):
@@ -323,41 +323,42 @@ def calc_fitness(genome):
   return genome.fitness()
 
 if __name__ == "__main__":
-  if len(sys.argv) != 2:
-    print "USAGE: " + sys.argv[0] + " image"
-    sys.exit()
-#  root = tk.PanedWindow(orient=tk.VERTICAL)
-#  gui = Gui(root, sys.argv[1])
-#  root.mainloop()
-#  root.destroy()
-  num_genomes = 100
-  num_best = 50
-  num_elite = 5
-  genomes = [Genome(sys.argv[1], 4, 70, 0.30) for i in range(num_genomes)]
-  pool = multiprocessing.Pool(processes=4)
-  plt.ion()
-  for i in range(50):
-    print "generation", i
-#    fitness = pool.map(calc_fitness, genomes)
-    fitness = [genome.fitness() for genome in genomes]
-    genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
-    new_genomes = genomes[-num_elite:]
-    print "best fitness", max(fitness)
-    plt.clf()
-    plt.hist(fitness)
-    plt.title("generation "+str(i))
-    plt.draw()
-    for j in range(num_elite):
-      genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
-    print "evolving"
-    while len(new_genomes) < num_genomes:
-      parent1 = random.choice(genomes[-num_best:])
-      parent2 = random.choice(genomes[-num_best:])
-      if parent1 != parent2:
-        genome = parent1.cross(parent2)
-        genome.mutate()
-        if genome.test():
-          new_genomes.append(genome)
-    del genomes
-    genomes = new_genomes
-    print "finished"
+  parser = argparse.ArgumentParser(description="evolutionary image glitching algorithm")
+  parser.add_argument("-a", "--autogen", help="automatic genome selection", action="store_true")
+  parser.add_argument("filename", help="image file to apply genome to")
+  args = parser.parse_args()
+  if args.autogen:
+    num_genomes = 100
+    num_best = 50
+    num_elite = 5
+    genomes = [Genome(args.filename, 4, 70, 0.30) for i in range(num_genomes)]
+    plt.ion()
+    for i in range(50):
+      print "generation", i
+      fitness = [genome.fitness() for genome in genomes]
+      genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
+      new_genomes = genomes[-num_elite:]
+      print "best fitness", max(fitness)
+      plt.clf()
+      plt.hist(fitness)
+      plt.title("generation "+str(i))
+      plt.draw()
+      for j in range(num_elite):
+        genomes[-(j+1)].get_mod().save("img"+str(i).zfill(3)+"_"+str(j).zfill(3)+".jpg")
+      print "evolving"
+      while len(new_genomes) < num_genomes:
+        parent1 = random.choice(genomes[-num_best:])
+        parent2 = random.choice(genomes[-num_best:])
+        if parent1 != parent2:
+          genome = parent1.cross(parent2)
+          genome.mutate()
+          if genome.test():
+            new_genomes.append(genome)
+      del genomes
+      genomes = new_genomes
+      print "finished"
+  else:
+    root = tk.PanedWindow(orient=tk.VERTICAL)
+    gui = Gui(root, args.filename)
+    root.mainloop()
+    root.destroy()
