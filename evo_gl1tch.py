@@ -137,9 +137,8 @@ class Genome(object):
           action.mutate()
   def cross(self, other):
     new_genome = copy.deepcopy(other)
-    splice = random.randint(0, len(self.genome))
     for i in range(len(self.genome)):
-      if i <= splice:
+      if random.random() > 0.5:
         new_genome.genome[i] = copy.deepcopy(self.genome[i])
       else:
         new_genome.genome[i] = copy.deepcopy(other.genome[i])
@@ -335,12 +334,12 @@ if __name__ == "__main__":
   num_best = 50
   num_elite = 5
   genomes = [Genome(sys.argv[1], 4, 70, 0.30) for i in range(num_genomes)]
+  pool = multiprocessing.Pool(processes=4)
   plt.ion()
   for i in range(50):
     print "generation", i
-    pool = multiprocessing.Pool(processes=4)
-    fitness = pool.map(calc_fitness, genomes)
-#    fitness = [genome.fitness() for genome in genomes]
+#    fitness = pool.map(calc_fitness, genomes)
+    fitness = [genome.fitness() for genome in genomes]
     genomes = [g[0] for g in sorted(zip(genomes, fitness), key=lambda x:x[1])]
     new_genomes = genomes[-num_elite:]
     print "best fitness", max(fitness)
@@ -359,5 +358,6 @@ if __name__ == "__main__":
         genome.mutate()
         if genome.test():
           new_genomes.append(genome)
+    del genomes
     genomes = new_genomes
     print "finished"
