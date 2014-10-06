@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 import argparse
+import scipy.stats
 
 class Action(object):
   def __init__(self, size, param):
@@ -158,6 +159,16 @@ class Genome(object):
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     matches = bf.match(des_orig, des_mod)
     num_matches = len(matches)
+    # calculate power spectrum
+#    cv_mod_gray = cv2.cvtColor(cv_mod, cv2.COLOR_RGB2GRAY)
+#    cv_mod_gray = cv_mod_gray.astype(np.float64)
+#    cv_mod_gray_dft = cv2.dft(cv_mod_gray, flags=cv2.DFT_COMPLEX_OUTPUT)
+#    re_mod, im_mod = cv2.split(cv_mod_gray_dft)
+#    mag_mod = cv2.sqrt(re_mod**2.0 + im_mod**2.0)
+#    log_spec_mod = cv2.log(1.0 + mag_mod)
+#    cv2.normalize(log_spec_mod, log_spec_mod, 0.0, 1.0, cv2.NORM_MINMAX)
+#    cv2.imshow("magnitude", log_spec_mod)
+#    cv2.waitKey(0)
     # split and get pixel values
     orig = [np.array(o.getdata()) for o in orig.split()]
     mod = [np.array(m.getdata()) for m in mod.split()]
@@ -165,8 +176,9 @@ class Genome(object):
     diff = sum([np.mean(abs(m-o)) for m, o in zip(orig, mod)])
     vari = sum([np.std(m) for m in mod])
     exposure = abs(np.mean(mod[0]*0.299 + mod[1]*0.587 + mod[2]*0.114) - 128)
+    entropy = scipy.stats.entropy(np.concatenate([np.histogram(m, bins=256, range=(0, 256), normed=True)[0] for m in mod])/3.0)
     # calculate fitness uniform weights up to now
-    fitness = num_matches + diff + vari - exposure
+    fitness = num_matches + diff + vari - exposure + entropy
     return fitness
   def get_orig(self):
     return Image.open(BytesIO("".join(self.im_data)))
