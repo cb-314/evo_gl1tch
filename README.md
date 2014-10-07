@@ -13,6 +13,10 @@ images will do several things:
 works well only on jpeg files because other image formats are a lot less error
 resistant
 
+using the --autogen option, image selection is automated using various
+criteria, making the image generation almost automated. an elitist approach is
+used and the elite population is saved to jpegs every generation.
+
 ## requirements
 
 * PIL + Tk interface
